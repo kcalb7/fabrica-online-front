@@ -41,7 +41,9 @@
       </template>
 
       <template v-slot:no-data>
-        <v-subheader>Noone user</v-subheader>
+        <v-row class="justify-center">
+          <v-subheader>No one bill</v-subheader>
+        </v-row>
       </template>
     </v-data-table>
   </div>
@@ -72,9 +74,7 @@ export default {
     users: [],
     actions: "",
     itemEditing: null,
-    actualUser: {
-      active: true,
-    },
+    actualUser: {},
     idGenerator: 4,
     formVisible: false,
   }),
@@ -128,9 +128,9 @@ export default {
       let userCopy = Object.assign({}, this.actualUser);
       if (!userCopy.id) {
         userCopy.id = this.idGenerator;
+        userCopy.active = true;
         this.idGenerator++;
         this.users = [...this.users, userCopy];
-        console.log(JSON.stringify(this.users));
       } else {
         this.users.forEach((user, i) => {
           if (user.id === userCopy.id) this.users.splice(i, 1, userCopy);
