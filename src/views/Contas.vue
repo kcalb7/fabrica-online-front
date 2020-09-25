@@ -2,15 +2,28 @@
   <div>
     <v-card class="mb-4 pa-4 mx-auto" width="75%" v-if="formVisible">
       <v-container>
-        <div class="mb-4">{{formTitle}}</div>
+        <div class="mb-4">{{ formTitle }}</div>
         <v-row>
-          <v-col cols="12" sm="4">
-            <v-text-field label="Descrive" outlined v-model="actualBill.description" hide-details></v-text-field>
+          <v-col cols="12" sm="6">
+            <v-text-field
+              label="Descrive"
+              outlined
+              v-model="actualBill.description"
+              hide-details
+            ></v-text-field>
           </v-col>
-          <v-col class="d-flex" cols="12" sm="4">
-            <v-select :items="types" label="Type" outlined v-model="actualBill.type" hide-details></v-select>
+          <v-col class="d-flex" cols="12" sm="6">
+            <v-select
+              :items="types"
+              label="Type"
+              outlined
+              v-model="actualBill.type"
+              hide-details
+            ></v-select>
           </v-col>
-          <v-col cols="12" sm="4">
+        </v-row>
+        <v-row>
+          <v-col cols="12" sm="6">
             <v-text-field
               type="number"
               min="0.1"
@@ -21,43 +34,79 @@
               hide-details
             ></v-text-field>
           </v-col>
+          <v-col cols="12" sm="6">
+            <v-text-field
+              type="date"
+              label="Date"
+              outlined
+              v-model="actualBill.date"
+              hide-details
+            ></v-text-field>
+          </v-col>
+        </v-row>
+        <v-row>
           <v-col cols="12" sm="12">
-            <v-textarea label="Observation" outlined v-model="actualBill.observation" hide-details></v-textarea>
+            <v-textarea
+              label="Observation"
+              outlined
+              v-model="actualBill.observation"
+              hide-details
+            ></v-textarea>
           </v-col>
         </v-row>
       </v-container>
       <v-card-actions class="mx-3">
         <v-row class="justify-sm-space-around">
           <v-btn color="success" @click="save" class="mx-1">add</v-btn>
-          <v-btn color="red lighten-1" @click="cancel" class="mx-1">Cancel</v-btn>
+          <v-btn color="red lighten-1" @click="cancel" class="mx-1"
+            >Cancel</v-btn
+          >
         </v-row>
       </v-card-actions>
     </v-card>
-    <v-data-table :headers="headers" :items="bills" sort-by="id" class="elevation-1">
+    <v-data-table
+      :headers="headers"
+      :items="bills"
+      sort-by="id"
+      class="elevation-1"
+    >
       <template v-slot:top>
         <v-toolbar flat color="white">
           <v-toolbar-title>Bills Control</v-toolbar-title>
           <v-divider class="mx-4" inset vertical></v-divider>
           <v-spacer></v-spacer>
-          <v-btn color="primary" @click="form" v-if="!formVisible">Add New Bill</v-btn>
+          <v-btn color="primary" @click="form" v-if="!formVisible"
+            >Add New Bill</v-btn
+          >
         </v-toolbar>
       </template>
       <template v-slot:body.append>
         <v-toolbar flat color="white">
           <v-toolbar-title>Total</v-toolbar-title>
           <v-divider class="mx-4" inset vertical></v-divider>
-          <v-card flat :class="(vtotal>=0?'green':'red')+'--text'">R$ {{vtotal.toFixed(2)}}</v-card>
+          <v-card flat :class="(vtotal >= 0 ? 'green' : 'red') + '--text'"
+            >R$ {{ vtotal.toFixed(2) }}</v-card
+          >
         </v-toolbar>
       </template>
 
       <template v-slot:item.type="{ item }">
-        <div :class="(item.type==='Income'?'green':'red')+'--text'">{{item.type}}</div>
+        <div :class="(item.type === 'Income' ? 'green' : 'red') + '--text'">
+          {{ item.type }}
+        </div>
       </template>
-      <template v-slot:item.value="{ item }">R$ {{parseFloat(item.value).toFixed(2)}}</template>
+      <template v-slot:item.value="{ item }"
+        >R$ {{ parseFloat(item.value).toFixed(2) }}</template
+      >
+      <template v-slot:item.date="{ item }">{{
+        formatDate(item.date)
+      }}</template>
       <template v-slot:item.actions="{ item }">
         <v-icon small class="mr-1" @click="desc(item)">mdi-magnify</v-icon>
         <v-icon small class="mx-1" @click="editItem(item)">mdi-pencil</v-icon>
-        <v-icon small class="mx-1" @click="confirmDelete(item)">mdi-delete</v-icon>
+        <v-icon small class="mx-1" @click="confirmDelete(item)"
+          >mdi-delete</v-icon
+        >
       </template>
 
       <template v-slot:no-data>
@@ -69,7 +118,9 @@
     <!-- modal confimation -->
     <v-dialog v-model="dialog" max-width="290" persistent>
       <v-card>
-        <v-card-title class="headline">Bill {{deleteBill.description}} deleted</v-card-title>
+        <v-card-title class="headline"
+          >Bill {{ deleteBill.description }} deleted</v-card-title
+        >
 
         <v-card-text>Are you sure?</v-card-text>
 
@@ -85,10 +136,12 @@
     <!-- modal details -->
     <v-dialog v-model="dialogDetails" max-width="50%">
       <v-card>
-        <v-card-title class="headline">{{actualBillDetail.description}} bill details</v-card-title>
+        <v-card-title class="headline"
+          >{{ actualBillDetail.description }} bill details</v-card-title
+        >
         <v-container>
           <v-row>
-            <v-col class="d-flex" cols="12" sm="6">
+            <v-col class="d-flex" cols="12" sm="4">
               <v-select
                 :items="types"
                 label="Type"
@@ -98,7 +151,7 @@
                 hide-details
               ></v-select>
             </v-col>
-            <v-col cols="12" sm="6">
+            <v-col cols="12" sm="4">
               <v-text-field
                 type="number"
                 min="0.1"
@@ -107,6 +160,16 @@
                 outlined
                 disabled
                 :value="actualBillDetail.value.toFixed(2)"
+                hide-details
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="4">
+              <v-text-field
+                type="date"
+                label="Date"
+                outlined
+                :value="actualBillDetail.date"
+                disabled
                 hide-details
               ></v-text-field>
             </v-col>
@@ -124,7 +187,9 @@
         <v-card-actions>
           <v-spacer></v-spacer>
 
-          <v-btn color="gray darken-1" text @click="dialogDetails=false">Ok</v-btn>
+          <v-btn color="gray darken-1" text @click="dialogDetails = false"
+            >Ok</v-btn
+          >
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -132,6 +197,7 @@
 </template>
 
 <script>
+import formatDate from "../util/dateFormaterUtil";
 export default {
   data: () => ({
     headers: [
@@ -148,6 +214,10 @@ export default {
         value: "type",
       },
       {
+        text: "Date",
+        value: "date",
+      },
+      {
         text: "Actions",
         value: "actions",
         sortable: false,
@@ -159,7 +229,7 @@ export default {
     actions: "",
     itemEditing: null,
     actualBill: {},
-    actualBillDetail: { value: 0 },
+    actualBillDetail: { value: 0, date: "" },
     deleteBill: {},
     idGenerator: 4,
     formVisible: false,
@@ -185,6 +255,7 @@ export default {
           description: "salary",
           value: 1500,
           type: "Income",
+          date: "2020-09-04",
           observation: "none",
         },
         {
@@ -192,6 +263,7 @@ export default {
           description: "internet",
           value: 98,
           type: "Expense",
+          date: "2020-09-04",
           observation: "",
         },
         {
@@ -199,6 +271,7 @@ export default {
           description: "shopping",
           value: 200,
           type: "Expense",
+          date: "2020-09-04",
           observation: "gifts",
         },
       ];
@@ -206,6 +279,9 @@ export default {
     },
     form() {
       this.formVisible = true;
+    },
+    formatDate(date) {
+      return formatDate(date);
     },
     desc(bill) {
       this.dialogDetails = true;
