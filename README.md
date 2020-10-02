@@ -1,5 +1,8 @@
 # fabrica-online-front
 
+Published on Netlify: [Fabrica Online HT](https://fabricaonlineht.netlify.app/)
+
+
 ## Project setup
 ```
 yarn install
@@ -14,6 +17,8 @@ yarn serve
 ```
 yarn build
 ```
+
+To directory `./dist`
 
 ### Lints and fixes files
 ```
