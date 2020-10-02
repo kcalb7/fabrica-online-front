@@ -33,6 +33,7 @@
 </template>
 
 <script>
+import billHttp from "../util/BillHttpUtil";
 import formatDate from "../util/dateFormaterUtil";
 export default {
   data: () => ({
@@ -61,47 +62,20 @@ export default {
   created() {
     this.initialize();
   },
-  mounted() {
-    this.dateLimit();
-    this.diary();
-    this.monthly();
-  },
   methods: {
     initialize() {
-      this.bills = [
-        {
-          id: 1,
-          description: "salary",
-          value: 1500,
-          type: "Income",
-          date: "2020-09-03",
-          observation: "none",
-        },
-        {
-          id: 2,
-          description: "internet",
-          value: 98,
-          type: "Expense",
-          date: "2020-09-07",
-          observation: "",
-        },
-        {
-          id: 2,
-          description: "mercado",
-          value: 395,
-          type: "Expense",
-          date: "2020-09-04",
-          observation: "",
-        },
-        {
-          id: 3,
-          description: "shopping",
-          value: 200,
-          type: "Expense",
-          date: "2020-09-05",
-          observation: "gifts",
-        },
-      ];
+      this.listAll();
+    },
+    listAll() {
+      billHttp.listAll().then((bills) => {
+        this.bills = bills.data;
+        this.sortBills();
+        this.dateLimit();
+        this.diary();
+        this.monthly();
+      });
+    },
+    sortBills() {
       this.bills.sort((a, b) => {
         if (a.date > b.date) return 1;
         if (a.date < b.date) return -1;

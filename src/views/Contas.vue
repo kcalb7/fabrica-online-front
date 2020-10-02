@@ -35,13 +35,34 @@
             ></v-text-field>
           </v-col>
           <v-col cols="12" sm="6">
-            <v-text-field
-              type="date"
-              label="Date"
-              outlined
-              v-model="actualBill.date"
-              hide-details
-            ></v-text-field>
+            <v-menu
+              ref="menu1"
+              v-model="menu1"
+              :close-on-content-click="false"
+              transition="scale-transition"
+              offset-y
+              max-width="290px"
+              min-width="290px"
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <v-text-field
+                  v-model="actualBill.dateFormated"
+                  label="Date"
+                  persistent-hint
+                  prepend-icon="mdi-calendar"
+                  v-bind="attrs"
+                  v-on="on"
+                ></v-text-field>
+              </template>
+              <v-date-picker
+                v-model="actualBill.date"
+                no-title
+                @input="
+                  menu1 = false;
+                  actualBill.dateFormated = formatDate(actualBill.date);
+                "
+              ></v-date-picker>
+            </v-menu>
           </v-col>
         </v-row>
         <v-row>
@@ -57,7 +78,9 @@
       </v-container>
       <v-card-actions class="mx-3">
         <v-row class="justify-sm-space-around">
-          <v-btn color="success" @click="save" class="mx-1">add</v-btn>
+          <v-btn color="success" @click="save" class="mx-1">{{
+            this.itemEditing ? "save" : "add"
+          }}</v-btn>
           <v-btn color="red lighten-1" @click="cancel" class="mx-1"
             >Cancel</v-btn
           >
@@ -197,9 +220,11 @@
 </template>
 
 <script>
+import billHttp from "../util/BillHttpUtil";
 import formatDate from "../util/dateFormaterUtil";
 export default {
   data: () => ({
+    menu1: false,
     headers: [
       {
         text: "Description",
@@ -227,7 +252,7 @@ export default {
     bills: [],
     vtotal: 0,
     actions: "",
-    itemEditing: null,
+    itemEditing: false,
     actualBill: {},
     actualBillDetail: { value: 0, date: "" },
     deleteBill: {},
@@ -239,7 +264,7 @@ export default {
 
   computed: {
     formTitle() {
-      return this.itemEditing === null ? "New Bill" : "Edit Bill";
+      return this.itemEditing ? "Edit Bill" : "New Bill";
     },
   },
 
@@ -249,33 +274,13 @@ export default {
 
   methods: {
     initialize() {
-      this.bills = [
-        {
-          id: 1,
-          description: "salary",
-          value: 1500,
-          type: "Income",
-          date: "2020-09-04",
-          observation: "none",
-        },
-        {
-          id: 2,
-          description: "internet",
-          value: 98,
-          type: "Expense",
-          date: "2020-09-04",
-          observation: "",
-        },
-        {
-          id: 3,
-          description: "shopping",
-          value: 200,
-          type: "Expense",
-          date: "2020-09-04",
-          observation: "gifts",
-        },
-      ];
-      this.calcTotal();
+      this.listAll();
+    },
+    listAll() {
+      billHttp.listAll().then((bills) => {
+        this.bills = bills.data;
+        this.calcTotal();
+      });
     },
     form() {
       this.formVisible = true;
@@ -286,25 +291,29 @@ export default {
     desc(bill) {
       this.dialogDetails = true;
       this.actualBillDetail = bill;
+      this.actualBillDetail.date = formatDate(this.actualBillDetail.date, true);
     },
     save() {
       let billCopy = Object.assign({}, this.actualBill);
       billCopy.value = parseFloat(billCopy.value);
-      if (!billCopy.id) {
-        billCopy.id = this.idGenerator;
-        this.idGenerator++;
-        this.bills = [...this.bills, billCopy];
+      if (!billCopy._id) {
+        billHttp.add(billCopy).then((res) => {
+          if (res.status === 201) this.listAll();
+        });
       } else {
-        this.bills.forEach((bill, i) => {
-          if (bill.id === billCopy.id) this.bills.splice(i, 1, billCopy);
+        billCopy.id = billCopy._id;
+        billHttp.edit(billCopy).then((res) => {
+          if (res.status === 200) this.listAll();
         });
       }
-      this.calcTotal();
+      this.listAll();
       this.cancel();
     },
     editItem(bill) {
-      this.itemEditing = bill;
+      this.itemEditing = true;
       Object.assign(this.actualBill, bill);
+      this.actualBill.dateFormated = formatDate(this.actualBill.date);
+      this.actualBill.date = formatDate(this.actualBill.date, true);
       this.formVisible = true;
     },
     confirmDelete(bill) {
@@ -313,15 +322,14 @@ export default {
     },
     deleteItem() {
       this.dialog = false;
-      this.bills.forEach((b, i) => {
-        if (b.id === this.deleteBill.id) this.bills.splice(i, 1);
+      billHttp.delete(this.deleteBill).then((res) => {
+        if (res.status === 200) this.listAll();
       });
       this.deleteBill = {};
-      this.calcTotal();
     },
     cancel() {
       this.actualBill = {};
-      this.itemEditing = null;
+      this.itemEditing = false;
       this.formVisible = false;
     },
     calcTotal() {
